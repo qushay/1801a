@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.solvits.indonesianidol.ContestantDetailActivity;
 import com.solvits.indonesianidol.R;
 import com.solvits.indonesianidol.customview.SquareImageView;
 import com.solvits.indonesianidol.model.ContestantModel;
@@ -77,16 +78,16 @@ public class ContestantAdapter extends RecyclerView.Adapter<ContestantAdapter.Vi
         if (contestant.getEliminated().equals("true")){
             holder.ivEliminated.setVisibility(View.VISIBLE);
         }
-//        holder.ivPhoto.setOnClickListener(new OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-////                remove(position);
-//                Intent i = new Intent(mContext, Details.class);
-//                i.putExtra("contestant",contestant);
-//                mContext.startActivity(i);
-//
-//            }
-//        });
+        holder.ivPhoto.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                remove(position);
+                Intent i = new Intent(mContext, ContestantDetailActivity.class);
+                i.putExtra("contestant",contestant);
+                mContext.startActivity(i);
+
+            }
+        });
     }
 
     // Return the size of your dataset (invoked by the layout manager)
