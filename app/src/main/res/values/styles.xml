@@ -35,4 +35,18 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="Button.Colored.Orange" parent="Widget.AppCompat.Button.Colored">
+        <item name="colorControlHighlight">@color/colorAccent</item>
+        <item name="colorButtonNormal">@color/colorButton</item>
+        <item name="android:color">@color/colorButton</item>
+        <item name="android:textColorPrimary">#FFF</item>
+    </style>
+
+    <style name="Button.Colored.Orange.Flat" parent="Widget.AppCompat.Button.Colored">
+        <item name="colorControlHighlight">@color/colorButton</item>
+        <item name="colorButtonNormal">@color/colorButton</item>
+        <item name="android:color">@color/colorButton</item>
+        <item name="android:textColorPrimary">@color/colorButton</item>
+    </style>
+
 </resources>

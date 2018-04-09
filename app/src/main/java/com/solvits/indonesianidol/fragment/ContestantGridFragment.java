@@ -37,7 +37,12 @@ public class ContestantGridFragment extends Fragment {
         mContext = container.getContext();
         mRvContestentGrid = view.findViewById(R.id.rv_contestant_grid);
         mContestants = new ArrayList<>();
-        mContestants.add(new ContestantModel("1", "Abdul", "true", "http://www.missindonesia.co.id/tahubulets/assets/images/idol/bank_file/person/contestant/1517222574_abdul.jpg"));
+        mContestants.add(new ContestantModel("1", "Abdul", "Bali",
+                "http://www.missindonesia.co.id/tahubulets/assets/images/idol/bank_file/person/contestant/1517222574_abdul.jpg",
+                "lajkjnda kjsdkj ksjdnkajsdnk kjsnkda kajsdkjsand mkjsndka",
+                "false",
+                "ABDUL",
+                "95151"));
         showGrid(mContestants);
         return view;
     }

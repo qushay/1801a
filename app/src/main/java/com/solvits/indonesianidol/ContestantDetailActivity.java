@@ -1,38 +1,59 @@
 package com.solvits.indonesianidol;
 
+
+import android.Manifest;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.telecom.Call;
+import android.telephony.SmsManager;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.solvits.indonesianidol.customview.SquareImageView;
 import com.solvits.indonesianidol.model.ContestantModel;
+
+import org.jsoup.Jsoup;
 
 import java.util.List;
 
 public class ContestantDetailActivity extends BaseActivity {
+
+
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS =0 ;
     RecyclerView recyclerView;
     CollapsingToolbarLayout collapsingToolbarLayout;
     private ContestantModel mContenstant;
-    private ImageView mIvBanner;
-    private ImageView mIvPhotoProfile;
+    private SquareImageView mIvBanner;
     private TextView mTvName;
-    private TextView mTvLocation;
-    private TextView mTvDesc;
-    private FloatingActionButton mBtVote;
+    private TextView mTvCity;
+    private TextView mTvBiograph;
+    private Button mBtVote;
+    private Button mBtSendVote;
+    private Button mBtCancelVote;
+    private LinearLayout mLlVoteDialog;
+    private EditText mEtNumberOfVote;
+
+    private String mSMSMessage;
+    private String mSMSNumber;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,12 +65,19 @@ public class ContestantDetailActivity extends BaseActivity {
         View view = getWindow().getDecorView();
         setLightStatusBar(view, this);
 
-//        showData(mContenstant);
-
-        collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+        collapsingToolbarLayout = findViewById(R.id.collapsing_toolbar);
         collapsingToolbarLayout.setTitleEnabled(false);
 
-        AppBarLayout appBarLayout = (AppBarLayout) findViewById(R.id.appbar);
+        mLlVoteDialog = findViewById(R.id.ll_vote_dialog);
+        mLlVoteDialog.setVisibility(View.GONE);
+        mBtCancelVote = findViewById(R.id.bt_cancel_vote);
+        mBtSendVote = findViewById(R.id.bt_send_vote);
+        mEtNumberOfVote = findViewById(R.id.et_number_of_sms);
+        mEtNumberOfVote.setText("10");
+
+        showData(mContenstant);
+
+        AppBarLayout appBarLayout = findViewById(R.id.appbar);
         appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
             int scrollRange = -1;
 
@@ -97,101 +125,96 @@ public class ContestantDetailActivity extends BaseActivity {
 //        comment.setText(wordtoSpan);
     }
 
-//    private void showData(ContestantModel contestant){
-//        mIvBanner = (ImageView) this.findViewById(R.id.image);
-//        mIvPhotoProfile = (ImageView) this.findViewById(R.id.user_profile);
-//        mTvName = (TextView) this.findViewById(R.id.tv_name);
-//        mTvLocation = (TextView) this.findViewById(R.id.tv_location);
-//        mTvDesc = (TextView) this.findViewById(R.id.tv_desc);
-//        mBtVote = (FloatingActionButton) this.findViewById(R.id.bt_vote);
+    private void showData(ContestantModel contestant){
+        mIvBanner = this.findViewById(R.id.iv_photo);
+        mTvName = this.findViewById(R.id.tv_name);
+        mTvCity = this.findViewById(R.id.tv_city);
+        mTvBiograph = this.findViewById(R.id.tv_biograph);
+        mBtVote = this.findViewById(R.id.bt_vote);
 //
 //
 //        Gson gson = new Gson();
 //
-//        if (contestant.getName() != null) {
-//            mTvName.setText(contestant.getName());
-//        }
-//        if (contestant.getFrom() != null) {
-//            mTvLocation.setText(contestant.getFrom());
-//        }
-//        if (contestant.getPhoto() != null) {
-//            Glide.with(this).load(contestant.getPhoto()).into(mIvBanner);
-//            Glide.with(this).load(contestant.getPhoto()).into(mIvPhotoProfile);
-//        }
-//        if (contestant.getDesc() != null){
-//            mTvDesc.setText(Jsoup.parse(contestant.getDesc()).text());
-//        }
+        if (contestant.getName() != null) {
+            mTvName.setText(contestant.getName());
+        }
+        if (contestant.getCity() != null) {
+            mTvCity.setText(contestant.getCity());
+        }
+        if (contestant.getPhoto() != null) {
+            Glide.with(this).load(contestant.getPhoto()).into(mIvBanner);
+        }
+        if (contestant.getBiograph() != null){
+            mTvBiograph.setText(Jsoup.parse(contestant.getBiograph()).text());
+        }
+        if (contestant.getSmsNumber() != null){
+            mSMSNumber = contestant.getSmsNumber();
+        }
+        if (contestant.getSmsMessage() != null){
+            mSMSMessage = contestant.getSmsMessage();
+        }
+
+        mBtVote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mLlVoteDialog.setVisibility(View.VISIBLE);
+            }
+        });
+
+        mBtSendVote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mLlVoteDialog.setVisibility(View.GONE);
+                sendSMS();
+            }
+        });
+
+        mBtCancelVote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mLlVoteDialog.setVisibility(View.GONE);
+            }
+        });
 //
-//        if (contestant.getPhotoOther() !=null){
-//            String json = Jsoup.parse(contestant.getPhotoOther()).text();
-//            List<String> photo = gson.fromJson(json,new TypeToken<List<String>>(){}.getType());
-//
-//            recyclerView = (RecyclerView) findViewById(R.id.recycler);
-//            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-//            recyclerView.setLayoutManager(linearLayoutManager);
-//            SpaceItemDecoration decoration = new SpaceItemDecoration(16);
-//            imageAdapter = new ImageAdapter(photo, this);
-//            recyclerView.addItemDecoration(decoration);
-//            recyclerView.setAdapter(imageAdapter);
-//        }
-//
-//        mBtVote.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                final AlertDialog.Builder builder = new AlertDialog.Builder(Details.this);
-//
-//                LayoutInflater inflater = Details.this.getLayoutInflater();
-//                final View v = inflater.inflate(R.layout.dialog_sms, null);
-//                final DiscreteSeekBar seekbar = (DiscreteSeekBar)v.findViewById(R.id.sb_sms);
-//                final TextView tvSms = (TextView)v.findViewById(R.id.tv_sms);
-//                final TextView tvName= (TextView)v.findViewById(R.id.tv_name);
-//                final TextView tvSmsTo = (TextView)v.findViewById(R.id.tv_sms_to);
-//
-//                tvName.setText(mContenstant.getName());
-//                tvSmsTo.setText("ABDUL ke 9288");
-//
-//                tvSms.setText("Kirim "+seekbar.getProgress()+" SMS");
-//
-//                seekbar.setOnProgressChangeListener(new DiscreteSeekBar.OnProgressChangeListener() {
-//                    @Override
-//                    public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser) {
-//                        tvSms.setText("Kirim "+value+" SMS");
-//                    }
-//
-//                    @Override
-//                    public void onStartTrackingTouch(DiscreteSeekBar seekBar) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onStopTrackingTouch(DiscreteSeekBar seekBar) {
-//
-//                    }
-//                });
-//
-//                builder.setView(v);
-//                builder.setPositiveButton("Kirim SMS", new DialogInterface.OnClickListener() {
-//                    public void onClick(DialogInterface dialog, int id) {
-//                        // User clicked OK button
-//                        Toast.makeText(Call.Details.this,seekbar.getProgress()+"", Toast.LENGTH_SHORT).show();
-//                        showProgress(seekbar.getProgress());
-//                    }
-//                });
-//                builder.setNegativeButton("Batal", new DialogInterface.OnClickListener() {
-//                    public void onClick(DialogInterface dialog, int id) {
-//                        // User cancelled the dialog
-//                    }
-//                });
-//                AlertDialog dialog = builder.create();
-//                dialog.show();
-//            }
-//        });
-//
-//    }
+    }
 
     @Override
     protected void onPause() {
         super.onPause();
+    }
+
+    private void sendSMS(){
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.SEND_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.SEND_SMS)) {
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.SEND_SMS},
+                        MY_PERMISSIONS_REQUEST_SEND_SMS);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_SEND_SMS: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    SmsManager smsManager = SmsManager.getDefault();
+                    smsManager.sendTextMessage(mSMSNumber, null, mSMSMessage, null, null);
+                    Toast.makeText(getApplicationContext(), "SMS sent.",
+                            Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            "SMS faild, please try again.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+            }
+        }
+
     }
 
 }
