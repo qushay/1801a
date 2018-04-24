@@ -54,6 +54,7 @@ public class ContestantDetailActivity extends BaseActivity {
 
     private String mSMSMessage;
     private String mSMSNumber;
+    private int mNumberOfVote;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -165,7 +166,11 @@ public class ContestantDetailActivity extends BaseActivity {
             @Override
             public void onClick(View view) {
                 mLlVoteDialog.setVisibility(View.GONE);
-                sendSMS();
+                mNumberOfVote = Integer.parseInt(mEtNumberOfVote.getText().toString());
+
+                for (int i=0; i<mNumberOfVote;i++) {
+                    sendSMS();
+                }
             }
         });
 
@@ -194,6 +199,11 @@ public class ContestantDetailActivity extends BaseActivity {
                         new String[]{Manifest.permission.SEND_SMS},
                         MY_PERMISSIONS_REQUEST_SEND_SMS);
             }
+        } else{
+            SmsManager smsManager = SmsManager.getDefault();
+            smsManager.sendTextMessage(mSMSNumber, null, mSMSMessage, null, null);
+            Toast.makeText(getApplicationContext(),
+                    "Vote terkirim.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -203,10 +213,12 @@ public class ContestantDetailActivity extends BaseActivity {
             case MY_PERMISSIONS_REQUEST_SEND_SMS: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
                     SmsManager smsManager = SmsManager.getDefault();
                     smsManager.sendTextMessage(mSMSNumber, null, mSMSMessage, null, null);
-                    Toast.makeText(getApplicationContext(), "SMS sent.",
-                            Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),
+                            "Vote terkirim.", Toast.LENGTH_SHORT).show();
+
                 } else {
                     Toast.makeText(getApplicationContext(),
                             "SMS faild, please try again.", Toast.LENGTH_LONG).show();
